@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hệ thống Quản lý Kho hàng</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Arial, sans-serif;
+      background: #f3f6fa; color: #263548;
+    }
+    header { background: #163654; color: white; padding: 22px; }
+    header h1 { margin: 0; }
+    header p { margin-bottom: 0; opacity: .85; }
+    main { max-width: 1200px; margin: 25px auto; padding: 0 16px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap: 15px; }
+    .card, section {
+      background: white; padding: 20px; border-radius: 10px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+    .card strong { display: block; font-size: 30px; color: #1767a8; margin-top: 10px; }
+    section { margin-top: 22px; }
+    h2 { margin-top: 0; color: #163654; }
+    form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    input, select, button {
+      padding: 10px; border: 1px solid #cad3df;
+      border-radius: 6px; font-size: 14px;
+    }
+    button { background: #1767a8; color: white; border: 0; cursor: pointer; }
+    button:hover { background: #0f4f85; }
+    button.danger { background: #bc3540; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 11px; text-align: left; border-bottom: 1px solid #e6eaf0; }
+    th { background: #edf3f8; }
+    .scroll { overflow-x: auto; }
+    .actions { display: flex; gap: 6px; }
+    .low { color: #c0392b; font-weight: bold; }
+    #message { padding: 10px 0; min-height: 35px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>HỆ THỐNG QUẢN LÝ KHO HÀNG</h1>
+  <p>Inventory Management System</p>
+</header>
+<main>
+  <div class="cards">
+    <div class="card">Tổng sản phẩm<strong id="totalProducts">0</strong></div>
+    <div class="card">Tổng số lượng tồn<strong id="totalStock">0</strong></div>
+    <div class="card">Nhà cung cấp<strong id="totalSuppliers">0</strong></div>
+    <div class="card">Sản phẩm tồn dưới 10<strong id="lowStock">0</strong></div>
+  </div>
+
+  <p id="message" role="status"></p>
+
+  <section>
+    <h2>1. Quản lý nhà cung cấp</h2>
+    <form id="supplierForm">
+      <input id="supplierName" placeholder="Tên nhà cung cấp" required>
+      <input id="supplierPhone" placeholder="Số điện thoại">
+      <input id="supplierEmail" placeholder="Email">
+      <input id="supplierAddress" placeholder="Địa chỉ">
+      <button type="submit">Thêm nhà cung cấp</button>
+    </form>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>ID</th><th>Tên</th><th>Điện thoại</th><th>Email</th><th>Thao tác</th></tr></thead>
+        <tbody id="supplierList"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Quản lý sản phẩm</h2>
+    <form id="productForm">
+      <input id="productName" placeholder="Tên sản phẩm" required>
+      <input id="productSku" placeholder="Mã SKU" required>
+      <input id="productPrice" type="number" min="0" step="0.01" placeholder="Đơn giá" required>
+      <select id="productSupplier"><option value="">Chọn nhà cung cấp</option></select>
+      <button type="submit">Thêm sản phẩm</button>
+    </form>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>ID</th><th>SKU</th><th>Tên sản phẩm</th><th>Giá</th><th>Tồn kho</th><th>Nhà cung cấp</th><th>Thao tác</th></tr></thead>
+        <tbody id="productList"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Nhập kho / Xuất kho</h2>
+    <form id="transactionForm">
+      <select id="transactionType">
+        <option value="IMPORT">Nhập kho</option>
+        <option value="EXPORT">Xuất kho</option>
+      </select>
+      <select id="transactionProduct" required></select>
+      <input id="transactionQuantity" type="number" min="1" step="1" placeholder="Số lượng" required>
+      <input id="transactionNote" placeholder="Ghi chú">
+      <button type="submit">Xác nhận giao dịch</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>4. Lịch sử nhập / xuất kho</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Mã phiếu</th><th>Loại</th><th>Sản phẩm</th><th>Số lượng</th><th>Thời gian</th><th>Ghi chú</th></tr></thead>
+        <tbody id="transactionList"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

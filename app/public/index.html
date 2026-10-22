@@ -1,117 +1,705 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hệ thống Quản lý Kho hàng</title>
+  <title>Inventory | Hệ thống quản lý kho</title>
   <style>
+    :root {
+      font-family: Arial, sans-serif;
+      color: #24364b;
+      background: #f2f5fa;
+    }
+
     * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: Arial, sans-serif;
-      background: #f3f6fa; color: #263548;
+    body { margin: 0; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    input, select {
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid #cdd7e2;
+      border-radius: 9px;
+      background: white;
+      color: #24364b;
     }
-    header { background: #163654; color: white; padding: 22px; }
-    header h1 { margin: 0; }
-    header p { margin-bottom: 0; opacity: .85; }
-    main { max-width: 1200px; margin: 25px auto; padding: 0 16px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap: 15px; }
-    .card, section {
-      background: white; padding: 20px; border-radius: 10px;
-      box-shadow: 0 2px 8px #0000000d;
+
+    input:focus, select:focus, button:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
     }
-    .card strong { display: block; font-size: 30px; color: #1767a8; margin-top: 10px; }
-    section { margin-top: 22px; }
-    h2 { margin-top: 0; color: #163654; }
-    form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-    input, select, button {
-      padding: 10px; border: 1px solid #cad3df;
-      border-radius: 6px; font-size: 14px;
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #42536a;
+      font-size: 14px;
+      font-weight: bold;
     }
-    button { background: #1767a8; color: white; border: 0; cursor: pointer; }
-    button:hover { background: #0f4f85; }
-    button.danger { background: #bc3540; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 11px; text-align: left; border-bottom: 1px solid #e6eaf0; }
-    th { background: #edf3f8; }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: 27px; }
+    h2 { font-size: 23px; }
+    h3 { font-size: 18px; }
+    .hidden { display: none !important; }
+
+    .primary, .secondary, .danger {
+      padding: 11px 15px;
+      border: none;
+      border-radius: 9px;
+      font-weight: bold;
+    }
+
+    .primary { color: white; background: #1767b2; }
+    .primary:hover { background: #0b5095; }
+    .secondary { background: #e9eff8; color: #174c7c; }
+    .danger { background: #bd3744; color: white; }
+    .muted { color: #64748b; font-size: 14px; }
+
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: linear-gradient(135deg,#13314f,#1b70af);
+    }
+
+    .auth-card {
+      width: min(100%, 470px);
+      padding: 35px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 20px 65px #071a3570;
+    }
+
+    .auth-brand {
+      color: #125d9e;
+      font-size: 27px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .auth-card form { display: grid; gap: 15px; }
+    .auth-card .primary { width: 100%; }
+    .auth-switch { display: flex; gap: 10px; margin: 15px 0 22px; }
+    .auth-switch button { flex: 1; }
+
+    .auth-message {
+      min-height: 25px;
+      margin: 12px 0 0;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 245px minmax(0,1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #152f4a;
+      color: #fff;
+      padding: 23px 15px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      padding: 10px 12px 24px;
+    }
+
+    .logo small {
+      display: block;
+      font-size: 12px;
+      opacity: .7;
+      margin-top: 5px;
+    }
+
+    .nav-button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 13px 15px;
+      margin: 4px 0;
+      color: #dce7f3;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+    }
+
+    .nav-button:hover, .nav-button.active {
+      background: #276297;
+      color: white;
+    }
+
+    .side-foot {
+      border-top: 1px solid #ffffff30;
+      margin-top: 25px;
+      padding: 18px 12px;
+      font-size: 13px;
+    }
+
+    .main { min-width: 0; }
+
+    .topbar {
+      background: white;
+      padding: 17px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 1px 8px #0000000d;
+    }
+
+    .topbar strong { color: #173a5e; }
+    .user-area { display: flex; align-items: center; gap: 12px; }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #164d83;
+      font-weight: bold;
+    }
+
+    .content {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 25px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-intro { color: #64748b; margin-bottom: 20px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4,minmax(0,1fr));
+      gap: 16px;
+    }
+
+    .stat, .panel {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 10px #102b4510;
+    }
+
+    .stat span { color: #64748b; font-size: 14px; }
+
+    .stat strong {
+      display: block;
+      font-size: 29px;
+      margin-top: 10px;
+      color: #1767b2;
+    }
+
+    .panel { margin-top: 18px; }
+    .panel h3 { margin-bottom: 16px; color: #1b3d5e; }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 155px minmax(0,1fr) 55px;
+      gap: 12px;
+      align-items: center;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    .chart-bar {
+      height: 14px;
+      background: #e7eef8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .chart-fill {
+      height: 100%;
+      background: #2379c0;
+      border-radius: 8px;
+    }
+
+    .chart-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(4,minmax(0,1fr));
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .form-row .primary { min-height: 42px; }
+
+    .form-row.products-form {
+      grid-template-columns: repeat(5,minmax(0,1fr));
+    }
+
+    .form-row.transaction-form {
+      grid-template-columns: repeat(5,minmax(0,1fr));
+    }
+
     .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 650px; }
+
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5eaf1;
+      font-size: 14px;
+    }
+
+    th { background: #edf3fa; color: #315272; }
     .actions { display: flex; gap: 6px; }
-    .low { color: #c0392b; font-weight: bold; }
-    #message { padding: 10px 0; min-height: 35px; }
+    .actions button { padding: 7px 10px; border-radius: 7px; }
+    .low { color: #b91c1c; font-weight: bold; }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #e7f3ff;
+      color: #16588b;
+      font-size: 12px;
+    }
+
+    .message {
+      min-height: 0;
+      padding: 0;
+      margin-bottom: 0;
+      font-weight: bold;
+    }
+
+    .message:not(:empty) {
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      background: #e7f8ed;
+      border-radius: 9px;
+      color: #166534;
+    }
+
+    .message.error:not(:empty) {
+      background: #fee8e8;
+      color: #b91c1c;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 15px;
+    }
+
+    .profile-item {
+      padding: 15px;
+      background: #f4f7fb;
+      border-radius: 10px;
+    }
+
+    .profile-item small {
+      display: block;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .profile-item strong { overflow-wrap: anywhere; }
+
+    @media (max-width: 1100px) {
+      .stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+      .form-row,
+      .form-row.products-form,
+      .form-row.transaction-form {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { padding: 12px; }
+      .logo { padding-bottom: 12px; }
+      .nav { display: flex; gap: 6px; overflow-x: auto; }
+      .nav-button {
+        flex: 0 0 auto;
+        width: auto;
+        white-space: nowrap;
+      }
+      .side-foot { display: none; }
+      .topbar { padding: 13px 16px; }
+      .content { padding: 16px; }
+      .user-area #userName { display: none; }
+
+      .stats,
+      .form-row,
+      .form-row.products-form,
+      .form-row.transaction-form,
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-card { padding: 22px; }
+    }
   </style>
 </head>
 <body>
-<header>
-  <h1>HỆ THỐNG QUẢN LÝ KHO HÀNG</h1>
-  <p>Inventory Management System</p>
-</header>
-<main>
-  <div class="cards">
-    <div class="card">Tổng sản phẩm<strong id="totalProducts">0</strong></div>
-    <div class="card">Tổng số lượng tồn<strong id="totalStock">0</strong></div>
-    <div class="card">Nhà cung cấp<strong id="totalSuppliers">0</strong></div>
-    <div class="card">Sản phẩm tồn dưới 10<strong id="lowStock">0</strong></div>
+  <div id="authPage" class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">▣ INVENTORY</div>
+      <p class="muted">Hệ thống quản lý kho hàng</p>
+
+      <div class="auth-switch">
+        <button type="button" id="showLogin" class="primary">Đăng nhập</button>
+        <button type="button" id="showRegister" class="secondary">Đăng ký</button>
+      </div>
+
+      <form id="loginForm">
+        <h2>Đăng nhập</h2>
+        <label>Email
+          <input id="loginEmail" type="email" autocomplete="username" required>
+        </label>
+        <label>Mật khẩu
+          <input id="loginPassword" type="password"
+                 autocomplete="current-password" required>
+        </label>
+        <button class="primary" type="submit">Đăng nhập</button>
+      </form>
+
+      <form id="registerForm" class="hidden">
+        <h2>Tạo tài khoản</h2>
+        <label>Họ và tên
+          <input id="registerName" maxlength="150" required>
+        </label>
+        <label>Email
+          <input id="registerEmail" type="email" maxlength="190" required>
+        </label>
+        <label>Số điện thoại
+          <input id="registerPhone" maxlength="20" inputmode="tel">
+        </label>
+        <label>Mật khẩu (ít nhất 12 ký tự)
+          <input id="registerPassword" type="password"
+                 minlength="12" autocomplete="new-password" required>
+        </label>
+        <button class="primary" type="submit">Tạo tài khoản</button>
+      </form>
+
+      <p id="authMessage" class="auth-message"
+         role="status" aria-live="polite"></p>
+    </div>
   </div>
 
-  <p id="message" role="status"></p>
+  <div id="appPage" class="layout hidden">
+    <aside class="sidebar">
+      <div class="logo">▣ INVENTORY
+        <small>Warehouse Management</small>
+      </div>
 
-  <section>
-    <h2>1. Quản lý nhà cung cấp</h2>
-    <form id="supplierForm">
-      <input id="supplierName" placeholder="Tên nhà cung cấp" required>
-      <input id="supplierPhone" placeholder="Số điện thoại">
-      <input id="supplierEmail" placeholder="Email">
-      <input id="supplierAddress" placeholder="Địa chỉ">
-      <button type="submit">Thêm nhà cung cấp</button>
-    </form>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>ID</th><th>Tên</th><th>Điện thoại</th><th>Email</th><th>Thao tác</th></tr></thead>
-        <tbody id="supplierList"></tbody>
-      </table>
+      <nav class="nav" aria-label="Chức năng">
+        <button class="nav-button active" data-page="dashboard">
+          ⌂ Trang chủ / Tổng quan
+        </button>
+        <button class="nav-button" data-page="suppliers">
+          ♧ Nhà cung cấp
+        </button>
+        <button class="nav-button" data-page="products">
+          ▣ Sản phẩm
+        </button>
+        <button class="nav-button" data-page="transactions">
+          ⇄ Nhập / Xuất kho
+        </button>
+        <button class="nav-button" data-page="history">
+          ▤ Lịch sử giao dịch
+        </button>
+        <button class="nav-button" data-page="profile">
+          ♙ Hồ sơ cá nhân
+        </button>
+      </nav>
+
+      <div class="side-foot">Inventory Management System</div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <strong id="pageTitle">Tổng quan kho hàng</strong>
+        <div class="user-area">
+          <span class="avatar" id="userAvatar">NV</span>
+          <div>
+            <strong id="userName">Người dùng</strong>
+            <div id="userRole" class="muted">STAFF</div>
+          </div>
+          <button id="logoutButton" class="secondary"
+                  type="button">Đăng xuất</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div id="message" class="message"
+             role="status" aria-live="polite"></div>
+
+        <div id="page-dashboard" class="page active">
+          <h1>Trang chủ – Tổng quan kho</h1>
+          <p class="page-intro">
+            Theo dõi tồn kho, sản phẩm và giao dịch gần đây.
+          </p>
+
+          <div class="stats">
+            <div class="stat">
+              <span>Tổng sản phẩm</span>
+              <strong id="totalProducts">0</strong>
+            </div>
+            <div class="stat">
+              <span>Tổng số lượng tồn</span>
+              <strong id="totalStock">0</strong>
+            </div>
+            <div class="stat">
+              <span>Nhà cung cấp</span>
+              <strong id="totalSuppliers">0</strong>
+            </div>
+            <div class="stat">
+              <span>Sản phẩm tồn dưới 10</span>
+              <strong id="lowStock">0</strong>
+            </div>
+          </div>
+
+          <section class="panel">
+            <h3>Biểu đồ tồn kho (tối đa 8 sản phẩm)</h3>
+            <div id="stockChart"></div>
+          </section>
+
+          <section class="panel">
+            <h3>Sản phẩm sắp hết hàng</h3>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Sản phẩm</th>
+                    <th>Tồn kho</th>
+                  </tr>
+                </thead>
+                <tbody id="lowStockList"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3>Giao dịch gần đây</h3>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã phiếu</th>
+                    <th>Loại</th>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Thời gian</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTransactions"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="page-suppliers" class="page">
+          <h1>Quản lý nhà cung cấp</h1>
+          <p class="page-intro">
+            Thêm, sửa và xóa thông tin nhà cung cấp.
+          </p>
+
+          <section class="panel">
+            <h3>Thêm nhà cung cấp</h3>
+            <form id="supplierForm" class="form-row">
+              <label>Tên nhà cung cấp
+                <input id="supplierName" required>
+              </label>
+              <label>Số điện thoại
+                <input id="supplierPhone">
+              </label>
+              <label>Email
+                <input id="supplierEmail" type="email">
+              </label>
+              <label>Địa chỉ
+                <input id="supplierAddress">
+              </label>
+              <button class="primary" type="submit">
+                Thêm nhà cung cấp
+              </button>
+            </form>
+
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên</th>
+                    <th>Điện thoại</th>
+                    <th>Email</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="supplierList"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="page-products" class="page">
+          <h1>Quản lý sản phẩm</h1>
+          <p class="page-intro">
+            Theo dõi mã SKU, giá, số lượng tồn và nhà cung cấp.
+          </p>
+
+          <section class="panel">
+            <h3>Thêm sản phẩm</h3>
+            <form id="productForm" class="form-row products-form">
+              <label>Tên sản phẩm
+                <input id="productName" required>
+              </label>
+              <label>Mã SKU
+                <input id="productSku" required>
+              </label>
+              <label>Đơn giá
+                <input id="productPrice" type="number"
+                       min="0" step="0.01" required>
+              </label>
+              <label>Nhà cung cấp
+                <select id="productSupplier">
+                  <option value="">Không chọn</option>
+                </select>
+              </label>
+              <button class="primary" type="submit">
+                Thêm sản phẩm
+              </button>
+            </form>
+
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>SKU</th>
+                    <th>Tên</th>
+                    <th>Giá</th>
+                    <th>Tồn</th>
+                    <th>Nhà cung cấp</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="productList"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="page-transactions" class="page">
+          <h1>Nhập kho / Xuất kho</h1>
+          <p class="page-intro">
+            Tạo giao dịch; hệ thống từ chối xuất vượt tồn kho.
+          </p>
+
+          <section class="panel">
+            <h3>Tạo phiếu giao dịch</h3>
+            <form id="transactionForm" class="form-row transaction-form">
+              <label>Loại phiếu
+                <select id="transactionType">
+                  <option value="IMPORT">Nhập kho</option>
+                  <option value="EXPORT">Xuất kho</option>
+                </select>
+              </label>
+              <label>Sản phẩm
+                <select id="transactionProduct" required>
+                  <option value="">Chọn sản phẩm</option>
+                </select>
+              </label>
+              <label>Số lượng
+                <input id="transactionQuantity" type="number"
+                       min="1" step="1" required>
+              </label>
+              <label>Ghi chú
+                <input id="transactionNote">
+              </label>
+              <button class="primary" type="submit">
+                Xác nhận giao dịch
+              </button>
+            </form>
+          </section>
+        </div>
+
+        <div id="page-history" class="page">
+          <h1>Lịch sử nhập / xuất kho</h1>
+          <p class="page-intro">
+            100 bản ghi giao dịch gần nhất theo API hiện tại.
+          </p>
+
+          <section class="panel">
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mã phiếu</th>
+                    <th>Loại</th>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Thời gian</th>
+                    <th>Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionList"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="page-profile" class="page">
+          <h1>Hồ sơ cá nhân</h1>
+          <p class="page-intro">
+            Thông tin tài khoản từ API /api/auth/me.
+          </p>
+
+          <section class="panel">
+            <h3>Thông tin tài khoản</h3>
+            <div class="profile-grid">
+              <div class="profile-item">
+                <small>Họ và tên</small>
+                <strong id="profileName">—</strong>
+              </div>
+              <div class="profile-item">
+                <small>Email</small>
+                <strong id="profileEmail">—</strong>
+              </div>
+              <div class="profile-item">
+                <small>Số điện thoại</small>
+                <strong id="profilePhone">—</strong>
+              </div>
+              <div class="profile-item">
+                <small>Vai trò</small>
+                <strong id="profileRole">—</strong>
+              </div>
+              <div class="profile-item">
+                <small>Ngày tạo tài khoản</small>
+                <strong id="profileCreated">—</strong>
+              </div>
+            </div>
+
+            <p class="muted" style="margin-top:18px">
+              Chức năng sửa hồ sơ và đổi mật khẩu trên giao diện
+              sẽ bổ sung sau khi triển khai API tương ứng.
+            </p>
+          </section>
+        </div>
+      </main>
     </div>
-  </section>
+  </div>
 
-  <section>
-    <h2>2. Quản lý sản phẩm</h2>
-    <form id="productForm">
-      <input id="productName" placeholder="Tên sản phẩm" required>
-      <input id="productSku" placeholder="Mã SKU" required>
-      <input id="productPrice" type="number" min="0" step="0.01" placeholder="Đơn giá" required>
-      <select id="productSupplier"><option value="">Chọn nhà cung cấp</option></select>
-      <button type="submit">Thêm sản phẩm</button>
-    </form>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>ID</th><th>SKU</th><th>Tên sản phẩm</th><th>Giá</th><th>Tồn kho</th><th>Nhà cung cấp</th><th>Thao tác</th></tr></thead>
-        <tbody id="productList"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section>
-    <h2>3. Nhập kho / Xuất kho</h2>
-    <form id="transactionForm">
-      <select id="transactionType">
-        <option value="IMPORT">Nhập kho</option>
-        <option value="EXPORT">Xuất kho</option>
-      </select>
-      <select id="transactionProduct" required></select>
-      <input id="transactionQuantity" type="number" min="1" step="1" placeholder="Số lượng" required>
-      <input id="transactionNote" placeholder="Ghi chú">
-      <button type="submit">Xác nhận giao dịch</button>
-    </form>
-  </section>
-
-  <section>
-    <h2>4. Lịch sử nhập / xuất kho</h2>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>Mã phiếu</th><th>Loại</th><th>Sản phẩm</th><th>Số lượng</th><th>Thời gian</th><th>Ghi chú</th></tr></thead>
-        <tbody id="transactionList"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-<script src="/app.js"></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>

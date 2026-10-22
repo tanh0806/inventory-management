@@ -1,0 +1,194 @@
+
+services:
+
+  # =====================================
+  # NGINX - GHI LOG VAO VOLUME
+  # =====================================
+
+  nginx:
+    volumes:
+      - inventory_nginx_logs:/var/log/nginx
+
+  # =====================================
+  # PROMETHEUS
+  # =====================================
+
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    restart: unless-stopped
+
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+
+    ports:
+      - "127.0.0.1:9091:9090"
+
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - inventory_prometheus_data:/prometheus
+
+    networks:
+      - monitoring_network
+
+    security_opt:
+      - no-new-privileges:true
+
+  # =====================================
+  # NODE EXPORTER
+  # =====================================
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro,rslave
+
+    networks:
+      - monitoring_network
+
+    security_opt:
+      - no-new-privileges:true
+
+  # =====================================
+  # BLACKBOX EXPORTER
+  # =====================================
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.27.0
+    restart: unless-stopped
+
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+
+    networks:
+      - monitoring_network
+      - app_network
+
+    security_opt:
+      - no-new-privileges:true
+
+  # =====================================
+  # LOKI
+  # =====================================
+
+  loki:
+    image: grafana/loki:3.7.3
+    restart: unless-stopped
+
+    user: "10001:10001"
+
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+
+    ports:
+      - "127.0.0.1:3101:3100"
+
+    volumes:
+      - ./monitoring/loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - inventory_loki_data:/loki
+
+    networks:
+      - monitoring_network
+
+    security_opt:
+      - no-new-privileges:true
+
+  # =====================================
+  # GRAFANA
+  # =====================================
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    restart: unless-stopped
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+
+    ports:
+      - "127.0.0.1:3001:3000"
+
+    volumes:
+      - inventory_grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources/inventory.yml:ro
+
+    depends_on:
+      - prometheus
+      - loki
+
+    networks:
+      - monitoring_network
+
+    security_opt:
+      - no-new-privileges:true
+
+  # =====================================
+  # GRAFANA ALLOY - NGINX LOG COLLECTOR
+  # =====================================
+
+  alloy:
+    image: grafana/alloy:v1.19.2
+    restart: unless-stopped
+
+    command:
+      - run
+      - --disable-reporting
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - inventory_nginx_logs:/var/log/inventory:ro
+      - inventory_alloy_data:/var/lib/alloy/data
+
+    depends_on:
+      - loki
+
+    networks:
+      - monitoring_network
+
+    security_opt:
+      - no-new-privileges:true
+
+# =====================================
+# MONITORING NETWORK
+# =====================================
+
+networks:
+  monitoring_network:
+    driver: bridge
+
+# =====================================
+# MONITORING VOLUMES
+# =====================================
+
+volumes:
+
+  inventory_nginx_logs:
+    name: inventory_nginx_logs
+
+  inventory_prometheus_data:
+    name: inventory_prometheus_data
+
+  inventory_grafana_data:
+    name: inventory_grafana_data
+
+  inventory_loki_data:
+    name: inventory_loki_data
+
+  inventory_alloy_data:
+    name: inventory_alloy_data

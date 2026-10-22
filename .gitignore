@@ -3,3 +3,11 @@ node_modules/
 *.log
 *.pem
 *.key
+
+# Local backups
+docker-compose.yml.backup*
+docker-compose.yml.before-*
+app/server.js.backup*
+
+# Local TLS certificates
+/nginx/certs/

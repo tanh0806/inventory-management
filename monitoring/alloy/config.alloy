@@ -1,0 +1,24 @@
+
+loki.source.file "inventory_nginx" {
+  targets = [
+    {
+      "__path__" = "/var/log/inventory/*.log",
+      "job"      = "inventory-nginx",
+      "service"  = "nginx",
+    },
+  ]
+
+  forward_to = [loki.write.inventory.receiver]
+
+  file_match {
+    enabled     = true
+    sync_period = "5s"
+  }
+}
+
+loki.write "inventory" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
